@@ -3,12 +3,18 @@
 package apigatewayservice
 
 import (
-	"context"
-	"github.com/cloudwego/hertz/pkg/common/utils"
-
 	apigatewayservice "APIGateway/biz/model/apigatewayservice"
+	"context"
+	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/adaptor"
+	"github.com/cloudwego/hertz/pkg/common/json"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
+	"github.com/cloudwego/kitex/client"
+	"github.com/cloudwego/kitex/client/genericclient"
+	"github.com/cloudwego/kitex/pkg/generic"
+	"github.com/cloudwego/kitex/pkg/loadbalance"
+	etcd "github.com/kitex-contrib/registry-etcd"
 )
 
 // APIPost .
@@ -21,10 +27,36 @@ func APIPost(ctx context.Context, c *app.RequestContext) {
 		c.String(consts.StatusBadRequest, err.Error())
 		return
 	}
+	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2379"})
+	if err != nil {
+		panic(err)
+		return
+	}
+	var opts []client.Option
+	opts = append(opts, client.WithResolver(r))
+	opts = append(opts, client.WithLoadBalancer(loadbalance.NewWeightedRandomBalancer()))
 
-	c.JSON(consts.StatusOK, utils.H{
-		"sn": req.ServiceName,
-		"mn": req.MethodName,
-		"iv": req.IDLVersion,
-	})
+	var resp string
+	//opts = append(opts, client.WithHostPorts("localhost:9999"))
+	p, _ := generic.NewThriftFileProvider("./idls/student.thrift")
+	g, _ := generic.JSONThriftGeneric(p)
+
+	cli, _ := genericclient.NewClient(req.ServiceName, g, opts...)
+	httpReq, _ := adaptor.GetCompatRequest(c.GetRequest())
+	re, err := generic.FromHTTPRequest(httpReq)
+	if err != nil {
+		fmt.Println(err)
+	}
+	m := re.Body
+	s, _ := json.Marshal(m)
+	str := string(s)
+	res, err := cli.GenericCall(ctx, req.MethodName, str)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	resp = res.(string)
+
+	c.JSON(consts.StatusOK, resp)
 }
