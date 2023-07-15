@@ -4,14 +4,12 @@ package main
 
 import (
 	handler "APIGateway/biz/handler"
-	"APIGateway/biz/handler/Test"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
 // customizeRegister registers customize routers.
 func customizedRegister(r *server.Hertz) {
 	r.GET("/ping", handler.Ping)
-	r.POST("agw/:serviceName/*methodName", Test.HandleAll)
 
 	// your code ...
 }

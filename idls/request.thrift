@@ -1,4 +1,4 @@
-namespace go Test
+namespace go apigatewayservice
 struct Req{
     1: string ServiceName(api.path="serviceName")
     2: string IDLVersion(api.header="IDLVersion")
@@ -6,4 +6,8 @@ struct Req{
 }
 struct Resp{
     1:string msg
+}
+
+service APIService{
+    Resp APIPost(1: Req req)(api.post="agw/:serviceName/*methodName")
 }
