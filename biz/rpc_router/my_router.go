@@ -18,8 +18,7 @@ func (router MyRouter) Forward(ctx context.Context, req interface{}, rpcName str
 	if err != nil {
 		return "", err
 	}
-	//todo 下面这个/不太优美
-	resp, err = (*client).GenericCall(ctx, "/"+methodName, req)
+	resp, err = (*client).GenericCall(ctx, methodName, req)
 	if err != nil {
 		return "", err
 	}
