@@ -15,5 +15,5 @@ struct Resp{
 
 service APIService{
     Resp APIPost(1: Req req)(api.post="agw/:serviceName/*methodName")
-    Resp IDLManage(1: IDLManageReq req)(api.patch="agw/:IDLName/:IDLVersion")
+    Resp IDLManage(1: IDLManageReq req)(api.patch="idl/:IDLName/:IDLVersion")
 }
