@@ -3,9 +3,9 @@
 package apigatewayservice
 
 import (
-	"APIGateway/biz/idl_manager"
+	"APIGateway/biz/idlmanager"
 	apigatewayservice "APIGateway/biz/model/apigatewayservice"
-	"APIGateway/biz/rpc_router"
+	"APIGateway/biz/rpcrouter"
 	"context"
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
@@ -35,7 +35,7 @@ func APIPost(ctx context.Context, c *app.RequestContext) {
 	m := re.Body
 	s, _ := json.Marshal(m)
 	str := string(s)
-	res, err := rpc_router.NewMyRouter().Forward(ctx, str, req.ServiceName, req.MethodName)
+	res, err := rpcrouter.NewRPCRouter().Forward(ctx, str, req.ServiceName, req.MethodName)
 
 	if err != nil {
 		fmt.Println(err)
@@ -61,9 +61,9 @@ func IDLManage(ctx context.Context, c *app.RequestContext) {
 	body, _ := io.ReadAll(httpReq.Body)
 	switch req.Method {
 	case "add":
-		err = idl_manager.AddIDL(req.IDLName, string(body))
+		err = idlmanager.AddIDL(req.IDLName, string(body))
 	case "delete":
-		err = idl_manager.DelIDL(req.IDLName)
+		err = idlmanager.DelIDL(req.IDLName)
 	}
 	if err != nil {
 		resp.Msg = err.Error()

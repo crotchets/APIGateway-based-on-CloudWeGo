@@ -1,4 +1,4 @@
-package idl_manager
+package idlmanager
 
 import (
 	"crypto/sha256"
