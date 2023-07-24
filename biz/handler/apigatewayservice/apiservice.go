@@ -43,3 +43,19 @@ func APIPost(ctx context.Context, c *app.RequestContext) {
 
 	c.JSON(consts.StatusOK, resp)
 }
+
+// IDLManage .
+// @router agw/:IDLName/:IDLVersion [PATCH]
+func IDLManage(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req apigatewayservice.IDLManageReq
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		c.String(consts.StatusBadRequest, err.Error())
+		return
+	}
+	//todo
+	resp := new(apigatewayservice.Resp)
+
+	c.JSON(consts.StatusOK, resp)
+}

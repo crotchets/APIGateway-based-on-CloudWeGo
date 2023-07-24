@@ -20,6 +20,10 @@ func Register(r *server.Hertz) {
 	{
 		_agw := root.Group("/agw", _agwMw()...)
 		{
+			_idlname := _agw.Group("/:IDLName", _idlnameMw()...)
+			_idlname.PATCH("/:IDLVersion", append(_idlmanageMw(), apigatewayservice.IDLManage)...)
+		}
+		{
 			_servicename := _agw.Group("/:serviceName", _servicenameMw()...)
 			_servicename.POST("/*methodName", append(_apipostMw(), apigatewayservice.APIPost)...)
 		}

@@ -25,3 +25,13 @@ func _apipostMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _idlnameMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _idlmanageMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

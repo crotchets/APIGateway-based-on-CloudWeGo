@@ -7,11 +7,11 @@ struct College {
 }
 
 struct Student {
-    1: required i32 id(api.body="id"),
-    2: required string name(api.body="name"),
-    3: required College college(api.body="college"),
-    4: optional list<string> email(api.body="email"),
-
+    1: required i32 id,
+    2: required string name,
+    3: required College college,
+    4: optional list<string> email,
+    5: optional string sex,
 }
 
 struct RegisterResp {
@@ -20,9 +20,8 @@ struct RegisterResp {
 }
 
 struct QueryReq {
-    1: required i32 id(api.query="id"),
+    1: required i32 id,
 }
-
 struct GetPortReq{
 }
 struct GetPortResp{
@@ -30,7 +29,7 @@ struct GetPortResp{
 }
 //----------------------service-------------------
 service StudentService {
-    RegisterResp Register(1: Student student)(api.post="/add-student-info")
-    Student Query(1: QueryReq req)(api.get="/query")
-    GetPortResp GetPort(1: GetPortReq req)(api.get="/port")
+    RegisterResp Register(1: Student student)
+    Student Query(1: QueryReq req)
+    GetPortResp GetPort(1: GetPortReq req)
 }
