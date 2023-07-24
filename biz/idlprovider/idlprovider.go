@@ -1,7 +1,9 @@
 package idlprovider
 
+import "APIGateway/biz/idlmanager"
+
 type IdlProvider struct {
-	//todo
+	//todo: add idl content cache
 }
 
 // 切换为单例模式
@@ -14,8 +16,6 @@ func GetIdlProvider() *IdlProvider {
 	return idlProvider
 }
 
-func (provider *IdlProvider) GetIdl(rpcName string) (path string, err error) {
-	//todo 这个函数的参数，返回目前都比较随意
-	target := "./idls/" + rpcName + ".thrift"
-	return target, nil
+func (provider *IdlProvider) GetIdl(rpcName string, version string) (content string, err error) {
+	return idlmanager.GetManager().GetIDL(rpcName, version)
 }

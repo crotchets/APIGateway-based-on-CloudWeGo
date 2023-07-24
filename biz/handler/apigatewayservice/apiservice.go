@@ -35,7 +35,7 @@ func APIPost(ctx context.Context, c *app.RequestContext) {
 	m := re.Body
 	s, _ := json.Marshal(m)
 	str := string(s)
-	res, err := rpcrouter.NewRPCRouter().Forward(ctx, str, req.ServiceName, req.MethodName)
+	res, err := rpcrouter.NewRPCRouter().Forward(ctx, str, req.ServiceName, req.IDLVersion, req.MethodName)
 
 	if err != nil {
 		fmt.Println(err)
@@ -57,19 +57,34 @@ func IDLManage(ctx context.Context, c *app.RequestContext) {
 		c.String(consts.StatusBadRequest, err.Error())
 		return
 	}
-	httpReq, _ := adaptor.GetCompatRequest(c.GetRequest())
-	body, _ := io.ReadAll(httpReq.Body)
 	switch req.Method {
 	case "add":
-		err = idlmanager.AddIDL(req.IDLName, req.IDLVersion, string(body))
+		httpReq, _ := adaptor.GetCompatRequest(c.GetRequest())
+		body, _ := io.ReadAll(httpReq.Body)
+		if err := idlmanager.GetManager().AddIDL(req.IDLName, req.IDLVersion, string(body)); err != nil {
+			resp.Msg = err.Error()
+			c.JSON(consts.StatusBadRequest, resp)
+			return
+		} else {
+			resp.Msg = "success"
+		}
 	case "delete":
-		err = idlmanager.DelIDL(req.IDLName, req.IDLVersion)
+		if err := idlmanager.GetManager().DelIDL(req.IDLName, req.IDLVersion); err != nil {
+			resp.Msg = err.Error()
+			c.JSON(consts.StatusBadRequest, resp)
+			return
+		} else {
+			resp.Msg = "success"
+		}
+	case "get":
+		file, err := idlmanager.GetManager().GetIDL(req.IDLName, req.IDLVersion)
+		if err != nil {
+			resp.Msg = err.Error()
+			c.JSON(consts.StatusBadRequest, resp)
+			return
+		} else {
+			resp.Msg = file
+		}
 	}
-	if err != nil {
-		resp.Msg = err.Error()
-		c.JSON(consts.StatusBadRequest, resp)
-		return
-	}
-	resp.Msg = "success"
 	c.JSON(consts.StatusOK, resp)
 }

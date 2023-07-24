@@ -14,9 +14,9 @@ type RPCRouter struct {
 func NewRPCRouter() *RPCRouter {
 	return &RPCRouter{}
 }
-func (router RPCRouter) Forward(ctx context.Context, req interface{}, rpcName string, methodName string) (resp interface{}, err error) {
+func (router *RPCRouter) Forward(ctx context.Context, req interface{}, rpcName string, version string, methodName string) (resp interface{}, err error) {
 	//todo 添加RPC服务器
-	client, err := clientprovider.NewClientProvider().GetClient(rpcName)
+	client, err := clientprovider.NewClientProvider().GetClient(rpcName, version)
 	if err != nil {
 		return "", err
 	}

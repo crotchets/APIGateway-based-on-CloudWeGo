@@ -19,7 +19,7 @@ func NewClientProvider() *ClientProvider {
 	return &ClientProvider{}
 }
 
-func (provider *ClientProvider) GetClient(rpcName string) (*genericclient.Client, error) {
+func (provider *ClientProvider) GetClient(rpcName string, version string) (*genericclient.Client, error) {
 	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2379"})
 	if err != nil {
 		return nil, err
@@ -37,11 +37,11 @@ func (provider *ClientProvider) GetClient(rpcName string) (*genericclient.Client
 	opts = append(opts, client.WithLongConnection(cfg))
 
 	//opts = append(opts, client.WithHostPorts("localhost:9999"))
-	path, err := idlprovider.GetIdlProvider().GetIdl(rpcName)
+	content, err := idlprovider.GetIdlProvider().GetIdl(rpcName, version)
 	if err != nil {
 		return nil, err
 	}
-	p, err := generic.NewThriftFileProvider(path)
+	p, err := generic.NewThriftContentProvider(content, nil)
 	if err != nil {
 		return nil, err
 	}
