@@ -37,7 +37,7 @@ func (provider *ClientProvider) GetClient(rpcName string) (*genericclient.Client
 	opts = append(opts, client.WithLongConnection(cfg))
 
 	//opts = append(opts, client.WithHostPorts("localhost:9999"))
-	path, err := idlprovider.NewIdlProvider().GetIdl(rpcName)
+	path, err := idlprovider.GetIdlProvider().GetIdl(rpcName)
 	if err != nil {
 		return nil, err
 	}

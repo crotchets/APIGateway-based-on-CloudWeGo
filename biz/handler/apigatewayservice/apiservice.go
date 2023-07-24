@@ -61,9 +61,9 @@ func IDLManage(ctx context.Context, c *app.RequestContext) {
 	body, _ := io.ReadAll(httpReq.Body)
 	switch req.Method {
 	case "add":
-		err = idlmanager.AddIDL(req.IDLName, string(body))
+		err = idlmanager.AddIDL(req.IDLName, req.IDLVersion, string(body))
 	case "delete":
-		err = idlmanager.DelIDL(req.IDLName)
+		err = idlmanager.DelIDL(req.IDLName, req.IDLVersion)
 	}
 	if err != nil {
 		resp.Msg = err.Error()
