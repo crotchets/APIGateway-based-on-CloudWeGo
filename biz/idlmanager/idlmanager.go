@@ -11,11 +11,11 @@ import (
 )
 
 type IdlInfo struct {
-	name string
-	hash string
+	name string // 对应目录文件名
+	hash string // 暂时无用
 }
 type IdlManager struct {
-	m map[string]IdlInfo
+	m map[string]IdlInfo // 建立从名称+版本到对应目录文件的映射
 }
 
 var manager *IdlManager

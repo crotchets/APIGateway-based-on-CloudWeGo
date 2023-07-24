@@ -21,21 +21,20 @@ import (
 func APIPost(ctx context.Context, c *app.RequestContext) {
 	var err error
 	var req apigatewayservice.Req
-	err = c.BindAndValidate(&req)
-	if err != nil {
+	if err = c.BindAndValidate(&req); err != nil {
 		c.String(consts.StatusBadRequest, err.Error())
 		return
-	}
+	} // 请求内容绑定
 	var resp string
 	httpReq, _ := adaptor.GetCompatRequest(c.GetRequest())
-	re, err := generic.FromHTTPRequest(httpReq)
+	re, err := generic.FromHTTPRequest(httpReq) // 转换为http请求
 	if err != nil {
 		fmt.Println(err)
 	}
 	m := re.Body
 	s, _ := json.Marshal(m)
 	str := string(s)
-	res, err := rpcrouter.NewRPCRouter().Forward(ctx, str, req.ServiceName, req.IDLVersion, req.MethodName)
+	res, err := rpcrouter.NewRPCRouter().Forward(ctx, str, req.ServiceName, req.IDLVersion, req.MethodName) // RPCRouter转发，可考虑单例模式
 
 	if err != nil {
 		fmt.Println(err)
@@ -52,15 +51,14 @@ func IDLManage(ctx context.Context, c *app.RequestContext) {
 	var err error
 	var req apigatewayservice.IDLManageReq
 	var resp = new(apigatewayservice.Resp)
-	err = c.BindAndValidate(&req)
-	if err != nil {
+	if err = c.BindAndValidate(&req); err != nil {
 		c.String(consts.StatusBadRequest, err.Error())
 		return
 	}
 	switch req.Method {
 	case "add":
 		httpReq, _ := adaptor.GetCompatRequest(c.GetRequest())
-		body, _ := io.ReadAll(httpReq.Body)
+		body, _ := io.ReadAll(httpReq.Body) // 获取请求数据
 		if err := idlmanager.GetManager().AddIDL(req.IDLName, req.IDLVersion, string(body)); err != nil {
 			resp.Msg = err.Error()
 			c.JSON(consts.StatusBadRequest, resp)
@@ -77,13 +75,13 @@ func IDLManage(ctx context.Context, c *app.RequestContext) {
 			resp.Msg = "success"
 		}
 	case "get":
-		file, err := idlmanager.GetManager().GetIDL(req.IDLName, req.IDLVersion)
+		content, err := idlmanager.GetManager().GetIDL(req.IDLName, req.IDLVersion)
 		if err != nil {
 			resp.Msg = err.Error()
 			c.JSON(consts.StatusBadRequest, resp)
 			return
 		} else {
-			resp.Msg = file
+			resp.Msg = content
 		}
 	}
 	c.JSON(consts.StatusOK, resp)

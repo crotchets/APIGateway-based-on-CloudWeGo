@@ -15,12 +15,12 @@ func NewRPCRouter() *RPCRouter {
 	return &RPCRouter{}
 }
 func (router *RPCRouter) Forward(ctx context.Context, req interface{}, rpcName string, version string, methodName string) (resp interface{}, err error) {
-	//todo 添加RPC服务器
-	client, err := clientprovider.NewClientProvider().GetClient(rpcName, version)
+	//todo 接入RPC服务器
+	client, err := clientprovider.NewClientProvider().GetClient(rpcName, version) // 获取RPC客户端
 	if err != nil {
 		return "", err
 	}
-	resp, err = (*client).GenericCall(ctx, methodName, req)
+	resp, err = (*client).GenericCall(ctx, methodName, req) // 泛化调用并返回结果
 	if err != nil {
 		return "", err
 	}

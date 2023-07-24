@@ -20,13 +20,13 @@ func NewClientProvider() *ClientProvider {
 }
 
 func (provider *ClientProvider) GetClient(rpcName string, version string) (*genericclient.Client, error) {
-	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2379"})
+	r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2379"}) // ETCD服务发现
 	if err != nil {
 		return nil, err
 	}
 	var opts []client.Option
-	opts = append(opts, client.WithResolver(r))
-	opts = append(opts, client.WithLoadBalancer(loadbalance.NewWeightedRandomBalancer()))
+	opts = append(opts, client.WithResolver(r))                                           // 解析器
+	opts = append(opts, client.WithLoadBalancer(loadbalance.NewWeightedRandomBalancer())) // 负载均衡
 
 	// 设置长连接配置
 	cfg := connpool.IdleConfig{
@@ -36,8 +36,7 @@ func (provider *ClientProvider) GetClient(rpcName string, version string) (*gene
 	}
 	opts = append(opts, client.WithLongConnection(cfg))
 
-	//opts = append(opts, client.WithHostPorts("localhost:9999"))
-	content, err := idlprovider.GetIdlProvider().GetIdl(rpcName, version)
+	content, err := idlprovider.GetIdlProvider().GetIdl(rpcName, version) // 获取IDL文件内容，现在provider只是一个无情的转发机器，等待加入内容缓存
 	if err != nil {
 		return nil, err
 	}
