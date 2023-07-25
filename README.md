@@ -48,7 +48,11 @@ curl -H "Content-Type: application/json" -H "Method: get" -X PATCH http://127.0.
 5. `student`服务的`1.1`版本的`idl`内容，由于它就是从`1.0`版本的`idl`中复制过来的，所以内容应该相同
 
 ##### Student Service
-1. 运行rpc server
+1. 运行etcd程序
+```bash
+etcd --log-level debug
+```
+2. 运行rpc server
 
 下列同种类命令均为二选一执行即可
 ```bash
@@ -60,7 +64,7 @@ curl -H "Content-Type: application/json" -H "Method: get" -X PATCH http://127.0.
  
  go run .
 ```
-2. 运行测试指令
+3. 运行测试指令
 ```bash 
 curl -H "Content-Type: application/json" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Register -d '{"id": 1, "name" : "Xinshen", "college" : {"name": "NJU", "address": "ikuan g"}, "email" : ["2631197015@qq.com", "211250245@smail.nju.edu.cn"], "sex" : "male"}' 
 curl -H "Content-Type: application/json" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Register -d '{"id": 2, "name" : "Corax", "college" : {"name": "NJU", "address": "ikuan g"}, "email" : ["2631197015@qq.com", "211250245@smail.nju.edu.cn"], "sex" : "male"}' 
