@@ -48,7 +48,19 @@ curl -H "Content-Type: application/json" -H "Method: get" -X PATCH http://127.0.
 5. `student`服务的`1.1`版本的`idl`内容，由于它就是从`1.0`版本的`idl`中复制过来的，所以内容应该相同
 
 ##### Student Service
-目前还需要本地部署数据库 
+1. 运行rpc server
+
+下列同种类命令均为二选一执行即可
+```bash
+ git clone git@github.com:KYCoraxxx/rpc-server-for-cloudwego-project.git  #SSH用户
+ git clone https://github.com/KYCoraxxx/rpc-server-for-cloudwego-project.git  #HTTPS用户
+ 
+ git checkout db-required #使用公网数据库存储数据
+ git checkout local-storage #使用内存暂存数据
+ 
+ go run .
+```
+2. 运行测试指令
 ```bash 
 curl -H "Content-Type: application/json" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Register -d '{"id": 1, "name" : "Xinshen", "college" : {"name": "NJU", "address": "ikuan g"}, "email" : ["2631197015@qq.com", "211250245@smail.nju.edu.cn"], "sex" : "male"}' 
 curl -H "Content-Type: application/json" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Register -d '{"id": 2, "name" : "Corax", "college" : {"name": "NJU", "address": "ikuan g"}, "email" : ["2631197015@qq.com", "211250245@smail.nju.edu.cn"], "sex" : "male"}' 
