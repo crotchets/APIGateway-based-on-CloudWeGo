@@ -11,6 +11,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/adaptor"
 	"github.com/cloudwego/hertz/pkg/common/json"
+	"github.com/cloudwego/hertz/pkg/common/utils"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 	"github.com/cloudwego/kitex/pkg/generic"
 	"io"
@@ -29,11 +30,14 @@ func APIPost(ctx context.Context, c *app.RequestContext) {
 	httpReq, _ := adaptor.GetCompatRequest(c.GetRequest())
 	re, err := generic.FromHTTPRequest(httpReq) // 转换为http请求
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(consts.StatusBadRequest, utils.H{"msg": err.Error()})
 	}
-	m := re.Body
-	s, _ := json.Marshal(m)
-	str := string(s)
+	body := re.Body
+	bytes, err := json.Marshal(body)
+	if err != nil {
+		c.JSON(consts.StatusBadRequest, utils.H{"msg": err.Error()})
+	}
+	str := string(bytes)
 	res, err := rpcrouter.NewRPCRouter().Forward(ctx, str, req.ServiceName, req.IDLVersion, req.MethodName) // RPCRouter转发，可考虑单例模式
 
 	if err != nil {
