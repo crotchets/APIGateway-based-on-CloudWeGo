@@ -16,7 +16,7 @@ func NewRPCRouter() *RPCRouter {
 }
 func (router *RPCRouter) Forward(ctx context.Context, req interface{}, rpcName string, version string, methodName string) (resp interface{}, err error) {
 	//todo 接入RPC服务器
-	client, err := clientprovider.NewClientProvider().GetClient(rpcName, version) // 获取RPC客户端
+	client, err := clientprovider.GetClientProvider().GetClient(rpcName, version) // 获取RPC客户端
 	if err != nil {
 		return "", err
 	}

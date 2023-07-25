@@ -12,15 +12,21 @@ import (
 )
 
 type ClientProvider struct {
-	cli genericclient.Client
+	m map[string]genericclient.Client
 }
 
-func NewClientProvider() *ClientProvider {
-	return &ClientProvider{}
+var provider *ClientProvider
+
+func GetClientProvider() *ClientProvider {
+	if provider == nil {
+		provider = new(ClientProvider)
+		provider.m = make(map[string]genericclient.Client)
+	}
+	return provider
 }
 
 func (provider *ClientProvider) GetClient(rpcName string, version string) (*genericclient.Client, error) {
-	if provider.cli == nil {
+	if _, exist := provider.m[rpcName+version]; !exist {
 		r, err := etcd.NewEtcdResolver([]string{"127.0.0.1:2379"}) // ETCD服务发现
 		if err != nil {
 			return nil, err
@@ -49,7 +55,8 @@ func (provider *ClientProvider) GetClient(rpcName string, version string) (*gene
 		if err != nil {
 			return nil, err
 		}
-		provider.cli, _ = genericclient.NewClient(rpcName, g, opts...)
+		provider.m[rpcName+version], _ = genericclient.NewClient(rpcName, g, opts...)
 	}
-	return &provider.cli, nil
+	cli := provider.m[rpcName+version]
+	return &cli, nil
 }
