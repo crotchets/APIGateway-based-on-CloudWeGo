@@ -16,12 +16,12 @@ git clone https://github.com/crotchets/APIGateway-based-on-CloudWeGo.git  #HTTPS
 ```
 #### 2. Checkout to developer branch
 ```bash
-git checkout -b demo  #我也不知道为啥叫demo
-git pull origin demo
+cd APIGateway-based-on-CloudWeGo
+git checkout -b dev
+git pull origin dev
 ```
 #### 3. Run the project
 ```bash
-cd APIGateway-based-on-CloudWeGo
 go run .
 ```
 #### 4. Test the project
@@ -59,6 +59,8 @@ etcd --log-level debug
  git clone git@github.com:KYCoraxxx/rpc-server-for-cloudwego-project.git  #SSH用户
  git clone https://github.com/KYCoraxxx/rpc-server-for-cloudwego-project.git  #HTTPS用户
  
+ cd rpc-server-for-cloudwego-project
+ 
  git checkout db-required #使用公网数据库存储数据
  git checkout local-storage #使用内存暂存数据
  
@@ -67,7 +69,7 @@ etcd --log-level debug
 3. 运行测试指令
 ```bash 
 curl -H "Content-Type: application/json" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Register -d '{"id": 1, "name" : "Xinshen", "college" : {"name": "NJU", "address": "ikuan g"}, "email" : ["2631197015@qq.com", "211250245@smail.nju.edu.cn"], "sex" : "male"}' 
-curl -H "Content-Type: application/json" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Register -d '{"id": 2, "name" : "Corax", "college" : {"name": "NJU", "address": "ikuan g"}, "email" : ["2631197015@qq.com", "211250245@smail.nju.edu.cn"], "sex" : "male"}' 
+curl -H "Content-Type: application/vbjson" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Register -d '{"id": 2, "name" : "Corax", "college" : {"name": "NJU", "address": "ikuan g"}, "email" : ["2631197015@qq.com", "211250245@smail.nju.edu.cn"], "sex" : "male"}' 
 curl -H "Content-Type: application/json" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Query -d '{"id" : 1}' 
 curl -H "Content-Type: application/json" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Query -d '{"id" : 2}' 
 ```
