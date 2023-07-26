@@ -3,6 +3,57 @@
 - [x] 陈皓鑫🌶️ [@crotchets](https://github.com/211250236)
 - [x] 张哲恺🌴 [@Corax](https://github.com/KYCoraxxx)
 - [x] 张铭铭🍵 [@TTHA](https://github.com/T-THA)
+## 项目结构
+### 1. 项目目录
+```bash
+├── README.md
+├── biz
+│    ├── clientprovider
+│    │    └── clientprovider.go
+│    ├── handler
+│    │    ├── apigatewayservice
+│    │    │    └── apiservice.go
+│    │    └── ping.go
+│    ├── idlmanager
+│    │    └── idlmanager.go
+│    ├── idlprovider
+│    │    └── idlprovider.go
+│    ├── model
+│    │    └── apigatewayservice
+│    │         └── request.go
+│    ├── router
+│    │    ├── apigatewayservice
+│    │    │    ├── middleware.go
+│    │    │    └── request.go
+│    │    └── register.go
+│    └── rpcrouter
+│         └── rpcrouter.go
+├── build.sh
+├── data.json
+├── docs
+│    ├── img
+│    │    └── optimization
+│    │         ├── insert.png
+│    │         └── query.png
+│    ├── test-optimization.md
+│    └── user-specification.md
+├── go.mod
+├── go.sum
+├── idls
+│    ├── request
+│    │    └── 1.0.thrift
+│    └── student
+│         ├── 1.0.thrift
+│         └── 1.1.thrift
+├── main.go
+├── result.txt
+├── router.go
+├── router_gen.go
+└── script
+    └── bootstrap.sh
+```
+### 2. 关键接口及方法描述
+[//]: # (TODO:关键接口及方法描述)
 ## 部署步骤
 确保本地环境中已经安装了`go`和`etcd`，并且已经配置好了`go mod`的代理
 ### 1. 准备调用端
@@ -125,6 +176,32 @@ go run .
     ```
     执行后应当可以看到`id`为`4`的学生信息不存在。
 
-## 接口描述
+## 请求接口描述
 
-[//]: # (TODO)
+[//]: # (TODO:是否保留请求接口描述)
+### 1. IDL Management
+- **接口描述**：IDL管理，包括获取IDL、添加IDL、删除IDL等
+- **接口地址**：`/idl/{service}/{version}`
+- **请求方法**：`PATCH`
+- **请求参数**：
+    - `service`：服务名，`string`类型，必填
+    - `version`：版本号，`string`类型，必填
+    - `Method`：请求方法，`string`类型，必填，取值范围为`get`、`add`、`delete`
+    - `Content-Type`：请求体类型，`string`类型，必填，取值范围为`application/json`、`text/plain`
+    - `Content-Length`：请求体长度，`int`类型，必填
+    - `Body`：请求体，`string`类型，必填
+    - `IDLVersion`：IDL版本号，`string`类型，必填
+    - `IDL`：IDL内容，`string`类型，必填
+### 2. Student Service
+- **接口描述**：学生信息管理，包括注册学生信息、查询学生信息等
+- **接口地址**：`/agw/student/{method}`
+- **请求方法**：`POST`
+- **请求参数**：
+    - `method`：方法名，`string`类型，必填，取值范围为`Register`、`Query`
+    - `Content-Type`：请求体类型，`string`类型，必填，取值范围为`application/json`
+    - `Content-Length`：请求体长度，`int`类型，必填
+    - `Body`：请求体，`string`类型，必填
+    - `IDLVersion`：IDL版本号，`string`类型，必填
+    - `IDL`：IDL内容，`string`类型，必填
+
+
