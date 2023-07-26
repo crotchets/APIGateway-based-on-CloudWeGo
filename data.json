@@ -1,0 +1,7 @@
+{
+    "id": 4,
+    "name" : "KFC",
+    "college" : {"name": "KFC", "address": "Thursday"},
+    "email" : ["2631197015@qq.com", "211250245@smail.nju.edu.cn"],
+    "sex" : "female"
+}

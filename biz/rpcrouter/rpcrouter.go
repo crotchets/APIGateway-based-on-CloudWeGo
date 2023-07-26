@@ -7,15 +7,17 @@ import (
 
 // 接收请求，将请求转发给rpc服务器，并将回复返回
 
-type RPCRouter struct {
-	//todo
-}
+type RPCRouter struct{}
 
-func NewRPCRouter() *RPCRouter {
-	return &RPCRouter{}
+var rpcrouter *RPCRouter
+
+func GetRPCRouter() *RPCRouter {
+	if rpcrouter == nil {
+		rpcrouter = &RPCRouter{}
+	}
+	return rpcrouter
 }
 func (router *RPCRouter) Forward(ctx context.Context, req interface{}, rpcName string, version string, methodName string) (resp interface{}, err error) {
-	//todo 接入RPC服务器
 	client, err := clientprovider.GetClientProvider().GetClient(rpcName, version) // 获取RPC客户端
 	if err != nil {
 		return "", err
