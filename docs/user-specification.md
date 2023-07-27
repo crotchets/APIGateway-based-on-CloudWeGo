@@ -5,15 +5,13 @@
 - [x] 张铭铭🍵 [@TTHA](https://github.com/T-THA)
 ## 项目结构
 ### 1. 项目目录
-```bash
-├── README.md
+```
 ├── biz
 │    ├── clientprovider
 │    │    └── clientprovider.go
 │    ├── handler
-│    │    ├── apigatewayservice
-│    │    │    └── apiservice.go
-│    │    └── ping.go
+│    │    └── apigatewayservice
+│    │         └── apiservice.go
 │    ├── idlmanager
 │    │    └── idlmanager.go
 │    ├── idlprovider
@@ -28,17 +26,7 @@
 │    │    └── register.go
 │    └── rpcrouter
 │         └── rpcrouter.go
-├── build.sh
-├── data.json
-├── docs
-│    ├── img
-│    │    └── optimization
-│    │         ├── insert.png
-│    │         └── query.png
-│    ├── test-optimization.md
-│    └── user-specification.md
 ├── go.mod
-├── go.sum
 ├── idls
 │    ├── request
 │    │    └── 1.0.thrift
@@ -46,16 +34,90 @@
 │         ├── 1.0.thrift
 │         └── 1.1.thrift
 ├── main.go
-├── result.txt
 ├── router.go
 ├── router_gen.go
-└── script
-    └── bootstrap.sh
+├── ...
 ```
 ### 2. 关键接口及方法描述
-[//]: # (TODO:关键接口及方法描述)
+#### clientprovider
+- 路径：**/biz/handler/clientprovider/clientprovider.go**
+- 提供RPC调用的客户端对象，随后进行客户端的泛化调用
+- 关键方法：
+  - `func (provider *ClientProvider) GetClient(serviceName string, version string) (*genericclient.Client, error)`
+    - 功能：获取指定服务的指定版本的`genericclient.Client`对象
+    - 参数：
+        - `serviceName`：服务名，`string`类型
+        - `version`：版本号，`string`类型
+    - 返回值：
+        - `*genericclient.Client`对象
+        - `error`对象
+#### apiservice
+- 路径：**/biz/handler/apigatewayservice/apiservice.go**
+- 处理收到的http请求，并根据业务逻辑进行相应的调用
+- 关键方法：
+  - `func APIPost(ctx context.Context, c *app.RequestContext)`
+    - 路由：`/agw/:serviceName/*methodName [POST]`
+    - 功能：处理收到的请求，转化为http请求，并进行RPCRouter转发，返回RPCRouter的调用结果
+    - 参数：
+        - `ctx`：上下文，`context.Context`类型
+        - `c`：请求上下文，`*app.RequestContext`类型
+  - `func IDLManage(ctx context.Context, c *app.RequestContext)`
+    - 路由：`idl/:IDLName/:IDLVersion [PATCH]`
+    - 功能：处理收到的idl相关请求，包括获取、增、删，将请求转发给IDLManager进行处理，并返回处理结果
+    - 参数：
+        - `ctx`：上下文，`context.Context`类型
+        - `c`：请求上下文，`*app.RequestContext`类型
+#### idlmanager
+- 路径：**/biz/handler/idlmanager/idlmanager.go**
+- idl管理的业务核心模块，包括获取、增、删
+- 关键方法：
+  - `func readIDLFileFromPath(path string) ([]string, error)`
+    - 功能：从指定路径读取idl文件内容
+    - 参数：
+        - `path`：文件路径，`string`类型
+    - 返回值：
+        - `[]string`类型的idl文件内容
+        - `error`对象
+  - `func (manager *IDLManager) GetIDL(IDLName string, IDLVersion string) (string, error)`
+    - 功能：获取指定服务的指定版本的idl内容
+    - 参数：
+        - `IDLName`：idl名，`string`类型
+        - `IDLVersion`：idl版本号，`string`类型
+    - 返回值：
+        - `string`类型的idl内容，若不存在指定的idl则返回提示信息
+        - `error`对象
+  - `func (manager *IDLManager) AddIDL(IDLName string, IDLVersion string, IDLContent string) error`
+    - 功能：添加指定服务的指定版本的idl内容
+    - 参数：
+        - `IDLName`：idl名，`string`类型
+        - `IDLVersion`：idl版本号，`string`类型
+        - `IDLContent`：idl内容，`string`类型
+    - 返回值：
+        - `error`对象
+  - `func (manager *IDLManager) DeleteIDL(IDLName string, IDLVersion string) error`
+    - 功能：删除指定服务的指定版本的idl内容
+    - 参数：
+        - `IDLName`：idl名，`string`类型
+        - `IDLVersion`：idl版本号，`string`类型
+    - 返回值：
+        - `error`对象
+#### rpcrouter
+- 路径：**/biz/rpcrouter/rpcrouter.go**
+- RPC路由模块，负责将收到的请求转发给RPC Server
+- 关键方法：
+  - `func (router *RPCRouter) Forward(ctx context.Context, req interface{}, rpcName string, version string, methodName string) (resp interface{}, err error)`
+    - 功能：将收到的请求转发给RPC Server
+    - 参数：
+        - `ctx`：上下文，`context.Context`类型
+        - `req`：请求，`interface{}`类型
+        - `rpcName`：RPC服务名，`string`类型
+        - `version`：版本号，`string`类型
+        - `methodName`：方法名，`string`类型
+    - 返回值：
+        - `resp`：响应，`interface{}`类型
+        - `err`：错误，`error`类型
 ## 部署步骤
-确保本地环境中已经安装了`go`和`etcd`，并且已经配置好了`go mod`的代理
+确保本地环境中已经安装了`go`和`etcd`，并且已经做好了环境变量配置。
 ### 1. 准备调用端
 调用端即为本项目仓库，可以使用ssh方式或者https方式克隆，选择其中一种执行即可：
 ```bash
@@ -177,8 +239,6 @@ go run .
     执行后应当可以看到`id`为`4`的学生信息不存在。
 
 ## 请求接口描述
-
-[//]: # (TODO:是否保留请求接口描述)
 ### 1. IDL Management
 - **接口描述**：IDL管理，包括获取IDL、添加IDL、删除IDL等
 - **接口地址**：`/idl/{service}/{version}`
@@ -187,9 +247,6 @@ go run .
     - `service`：服务名，`string`类型，必填
     - `version`：版本号，`string`类型，必填
     - `Method`：请求方法，`string`类型，必填，取值范围为`get`、`add`、`delete`
-    - `Content-Type`：请求体类型，`string`类型，必填，取值范围为`application/json`、`text/plain`
-    - `Content-Length`：请求体长度，`int`类型，必填
-    - `Body`：请求体，`string`类型，必填
     - `IDLVersion`：IDL版本号，`string`类型，必填
     - `IDL`：IDL内容，`string`类型，必填
 ### 2. Student Service
@@ -198,9 +255,14 @@ go run .
 - **请求方法**：`POST`
 - **请求参数**：
     - `method`：方法名，`string`类型，必填，取值范围为`Register`、`Query`
-    - `Content-Type`：请求体类型，`string`类型，必填，取值范围为`application/json`
-    - `Content-Length`：请求体长度，`int`类型，必填
     - `Body`：请求体，`string`类型，必填
+      - `id`：学生id，`int`类型
+      - `name`：学生姓名，`string`类型
+      - `college`：学生学院，`struct`类型
+        - `name`：学院名称，`string`类型
+        - `address`：学院地址，`string`类型
+      - `email`：学生邮箱，`[]string`类型
+      - `sex`：学生性别，`string`类型
     - `IDLVersion`：IDL版本号，`string`类型，必填
     - `IDL`：IDL内容，`string`类型，必填
 
