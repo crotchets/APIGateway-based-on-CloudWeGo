@@ -657,7 +657,7 @@ func (s *StudentServiceImpl) Register(ctx context.Context, student *demo.Student
 ![](img/optimization/idl-opt.png)
 ![](img/optimization/top-opt.png)
 
-从pprof监测的结果来看，IDLManage模块原本在读取文件上就要花费的0.04s，在缓存的帮助下，整个模块耗时降低到了0.02s，性能得到了提升
+从pprof监测的结果来看，IDLManage模块原本在读取文件上就要花费的0.69s，在缓存的帮助下，整个模块耗时降低到了0.24s，性能得到了提升
 
 ### API网关学生信息管理
 
