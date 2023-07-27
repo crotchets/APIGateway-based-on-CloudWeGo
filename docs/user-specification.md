@@ -5,6 +5,7 @@
 - [x] 张铭铭🍵 [@TTHA](https://github.com/T-THA)
 ## 项目结构
 ### 1. 项目目录
+以下列出项目主要目录及文件，其中`...`表示省略的目录或文件：
 ```
 ├── biz
 │    ├── clientprovider
@@ -140,7 +141,10 @@ git pull origin dev
 ```bash
 go mod tidy
 ```
-至此，调用端就准备完毕了。
+此外，我们还需要修改idls目录的权限，使其可以在后续测试时进行读写：
+```bash
+chmod 777 idls/
+```
 ### 2. 准备rpc server
 返回上一级目录：
 ```bash
@@ -236,8 +240,12 @@ go run .
     ```bash
     curl -H "Content-Type: application/json" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Query -d '{"id" : 4}'
     ```
-    执行后应当可以看到`id`为`4`的学生信息不存在。
-
+    执行后应当可以看到`id`为`4`的学生不存在。
+- 重复添加学生信息：
+    ```bash
+    curl -H "Content-Type: application/json" -H "IDLVersion: 1.0" -X POST http://127.0.0.1:8888/agw/student/Register -d '{"id": 3, "name" : "TTHA", "college" : {"name": "NJU", "address": "iming"}, "email" : ["1919810@qq.com", "211252112@smail.nju.edu.cn"], "sex" : "female"}'
+    ```
+    执行后应当提示`id`为`3`的学生已经存在。
 ## 请求接口描述
 ### 1. IDL Management
 - **接口描述**：IDL管理，包括获取IDL、添加IDL、删除IDL等
