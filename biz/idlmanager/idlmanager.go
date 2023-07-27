@@ -1,18 +1,17 @@
 package idlmanager
 
 import (
-	"crypto/sha256"
 	"errors"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 type IdlInfo struct {
-	name string // 对应目录文件名
-	hash string // 暂时无用
+	name    string // 对应目录文件名
+	content string // 文件内容
 }
 type IdlManager struct {
 	m map[string]IdlInfo // 建立从名称+版本到对应目录文件的映射
@@ -54,21 +53,35 @@ func getFileName(rawName string) string {
 	return strings.Join(parts, "")
 }
 
+var flag bool = false
+
 func GetManager() *IdlManager {
 	if manager == nil {
 		manager = &IdlManager{make(map[string]IdlInfo)}
+		go manager.update()
+		for !flag {
+		} // wait for the first updating
+	}
+	return manager
+}
 
+func (man *IdlManager) update() {
+	for {
 		files, err := readIDLFileFromPath(idlRootDirectory)
 		if err != nil {
 			log.Fatal(err)
 		} else {
-			hash := sha256.New()
 			for _, file := range files {
-				manager.m[getFileName(file)] = IdlInfo{name: file, hash: string(hash.Sum(nil))}
+				ct, err := ioutil.ReadFile(idlRootDirectory + file)
+				if err != nil {
+					log.Fatal(err)
+				}
+				manager.m[getFileName(file)] = IdlInfo{name: file, content: string(ct[:])}
 			}
 		}
+		flag = true
+		time.Sleep(30 * time.Second)
 	}
-	return manager
 }
 
 func (man *IdlManager) AddIDL(name string, version string, idl interface{}) error {
@@ -87,12 +100,7 @@ func (man *IdlManager) AddIDL(name string, version string, idl interface{}) erro
 		return err
 	}
 
-	hash := sha256.New()
-	if _, err = io.Copy(hash, newFile); err != nil {
-		return err
-	}
-
-	man.m[targetFile] = IdlInfo{filename, string(hash.Sum(nil))}
+	man.m[targetFile] = IdlInfo{filename, idl.(string)}
 	return nil
 }
 
@@ -113,10 +121,7 @@ func (man *IdlManager) GetIDL(name string, version string) (string, error) {
 	targetFile := name + version
 	if _, exist := man.m[targetFile]; !exist {
 		return "", errors.New("no such IDL")
-	}
-	if file, err := ioutil.ReadFile(idlRootDirectory + man.m[targetFile].name); err != nil {
-		return "", err
 	} else {
-		return string(file[:]), nil
+		return man.m[targetFile].content, nil
 	}
 }

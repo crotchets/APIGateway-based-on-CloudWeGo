@@ -4,7 +4,6 @@
 - [x] 张哲恺🌴 [@Corax](https://github.com/KYCoraxxx)
 - [x] 张铭铭🍵 [@TTHA](https://github.com/T-THA)
 ## 测试方案说明
-> TODO: 是否需要提出更量化的指标
 
 本小组实现的API网关一共实现了两个功能，如下所示：
 
@@ -24,9 +23,62 @@ RPC服务端一共实现了两种数据管理方式，分别是暂存于运行�
 ### IDL多版本控制于管理
 
 #### 高压力连续查询
-```bash
-ab -n 1000 -c 10 -H 'IDLVersion: 1.0' -T 'application/json' -p data.json http://127.0.0.1:8888/agw/student/Query
+由于ab不支持PATCH请求，因此我们写了一个简易的发压脚本，如下所示
+```go
+package main
+
+import (
+	"fmt"
+	"os/exec"
+)
+
+const REQUEST_TIMES int = 100000
+const COWORK_NUMS int = 10
+
+var c = make(chan int, REQUEST_TIMES)
+var args []string
+
+func test(id int) {
+	for len(c) < REQUEST_TIMES {
+		c <- id
+		cmd := exec.Command("curl", args...)
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(out[:]))
+	}
+}
+
+func main() {
+	args = append(args, "-H")
+	args = append(args, "Method: get")
+	args = append(args, "-X")
+	args = append(args, "PATCH")
+	args = append(args, "http://127.0.0.1:8888/idl/student/1.0")
+	for i := 1; i <= COWORK_NUMS; i++ {
+		go test(i)
+	}
+	for len(c) <= REQUEST_TIMES {
+
+	}
+}
 ```
+1. 返回数据
+```text
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   874  100   874    0     0  1203k      0 --:--:-- --:--:-- --:--:--  853k
+{"msg":"namespace go demo\r\n\r\n//--------------------request \u0026 response--------------\r\nstruct College {\r\n    1: required string name(go.tag = 'json:\"name\"'),\r\n    2: string address(go.ta
+g = 'json:\"address\"'),\r\n}\r\n\r\nstruct Student {\r\n    1: required i32 id,\r\n    2: required string name,\r\n    3: required College college,\r\n    4: optional list\u003cstring\u003e email,\r\n
+    5: optional string sex,\r\n}\r\n\r\nstruct RegisterResp {\r\n    1: bool success,\r\n    2: string message,\r\n}\r\n\r\nstruct QueryReq {\r\n    1: required i32 id,\r\n}\r\nstruct GetPortReq{\r\n}\
+r\nstruct GetPortResp{\r\n    1: string port\r\n}\r\n//----------------------service-------------------\r\nservice StudentService {\r\n    RegisterResp Register(1: Student student)\r\n    Student Query(1: QueryReq req)\r\n    GetPortResp GetPort(1: GetPortReq req)\r\n}"}
+
+......
+```
+2. pprof监测结果
+![](img/optimization/idl.png)
+![](img/optimization/top.png)
 
 ### API网关学生信息管理
 
@@ -263,6 +315,264 @@ Percentage of the requests served within a certain time (ms)
 
 ### IDL多版本管理与控制
 
+#### 高压力连续查询
+
+从pprof的监测结果来看，os.ReadFile接口占用了相当的时间，考察此处代码的写法:
+```go
+package idlmanager
+
+import (
+	"crypto/sha256"
+	"errors"
+	"io"
+	"io/ioutil"
+	"log"
+	"os"
+	"strings"
+)
+
+type IdlInfo struct {
+	name string // 对应目录文件名
+	hash string // 暂时无用
+}
+type IdlManager struct {
+	m map[string]IdlInfo // 建立从名称+版本到对应目录文件的映射
+}
+
+var manager *IdlManager
+
+const idlRootDirectory string = "./idls/"
+const idlFileSuffix string = ".thrift"
+
+func readIDLFileFromPath(path string) ([]string, error) {
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []string
+
+	for _, file := range files {
+		if file.IsDir() {
+			subFiles, err := readIDLFileFromPath(path + file.Name())
+			if err != nil {
+				return nil, err
+			}
+
+			for _, version := range subFiles {
+				res = append(res, file.Name()+"/"+version)
+			}
+		} else {
+			res = append(res, file.Name())
+		}
+	}
+	return res, nil
+}
+
+func getFileName(rawName string) string {
+	noSuffixName := strings.TrimSuffix(rawName, idlFileSuffix)
+	parts := strings.Split(noSuffixName, "/")
+	return strings.Join(parts, "")
+}
+
+func GetManager() *IdlManager {
+	if manager == nil {
+		manager = &IdlManager{make(map[string]IdlInfo)}
+
+		files, err := readIDLFileFromPath(idlRootDirectory)
+		if err != nil {
+			log.Fatal(err)
+		} else {
+			hash := sha256.New()
+			for _, file := range files {
+				manager.m[getFileName(file)] = IdlInfo{name: file, hash: string(hash.Sum(nil))}
+			}
+		}
+	}
+	return manager
+}
+
+func (man *IdlManager) AddIDL(name string, version string, idl interface{}) error {
+	targetFile := name + version
+	if _, exist := man.m[targetFile]; exist {
+		return errors.New("IDL already exists")
+	}
+	filename := name + "/" + version + idlFileSuffix
+	newFile, err := os.Create(idlRootDirectory + filename)
+	if err != nil {
+		return err
+	}
+
+	defer newFile.Close()
+	if _, err = newFile.WriteString(idl.(string)); err != nil {
+		return err
+	}
+
+	hash := sha256.New()
+	if _, err = io.Copy(hash, newFile); err != nil {
+		return err
+	}
+
+	man.m[targetFile] = IdlInfo{filename, string(hash.Sum(nil))}
+	return nil
+}
+
+func (man *IdlManager) DelIDL(name string, version string) error {
+	targetFile := name + version
+	if _, exist := man.m[targetFile]; !exist {
+		return errors.New("no such IDL")
+	}
+	if err := os.Remove(idlRootDirectory + man.m[targetFile].name); err != nil {
+		return err
+	}
+
+	delete(man.m, targetFile)
+	return nil
+}
+
+func (man *IdlManager) GetIDL(name string, version string) (string, error) {
+	targetFile := name + version
+	if _, exist := man.m[targetFile]; !exist {
+		return "", errors.New("no such IDL")
+	}
+	if file, err := ioutil.ReadFile(idlRootDirectory + man.m[targetFile].name); err != nil {
+		return "", err
+	} else {
+		return string(file[:]), nil
+	}
+}
+```
+因此优化方案为为读文件添加缓存，并定时更新文件内容:
+```go
+package idlmanager
+
+import (
+	"errors"
+	"io/ioutil"
+	"log"
+	"os"
+	"strings"
+	"time"
+)
+
+type IdlInfo struct {
+	name    string // 对应目录文件名
+	content string // 文件内容
+}
+type IdlManager struct {
+	m map[string]IdlInfo // 建立从名称+版本到对应目录文件的映射
+}
+
+var manager *IdlManager
+
+const idlRootDirectory string = "./idls/"
+const idlFileSuffix string = ".thrift"
+
+func readIDLFileFromPath(path string) ([]string, error) {
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []string
+
+	for _, file := range files {
+		if file.IsDir() {
+			subFiles, err := readIDLFileFromPath(path + file.Name())
+			if err != nil {
+				return nil, err
+			}
+
+			for _, version := range subFiles {
+				res = append(res, file.Name()+"/"+version)
+			}
+		} else {
+			res = append(res, file.Name())
+		}
+	}
+	return res, nil
+}
+
+func getFileName(rawName string) string {
+	noSuffixName := strings.TrimSuffix(rawName, idlFileSuffix)
+	parts := strings.Split(noSuffixName, "/")
+	return strings.Join(parts, "")
+}
+
+var flag bool = false
+
+func GetManager() *IdlManager {
+	if manager == nil {
+		manager = &IdlManager{make(map[string]IdlInfo)}
+		go manager.update()
+		for !flag {
+		} // wait for the first updating
+	}
+	return manager
+}
+
+func (man *IdlManager) update() {
+	for {
+		files, err := readIDLFileFromPath(idlRootDirectory)
+		if err != nil {
+			log.Fatal(err)
+		} else {
+			for _, file := range files {
+				ct, err := ioutil.ReadFile(idlRootDirectory + file)
+				if err != nil {
+					log.Fatal(err)
+				}
+				manager.m[getFileName(file)] = IdlInfo{name: file, content: string(ct[:])}
+			}
+		}
+		flag = true
+		time.Sleep(30 * time.Second)
+	}
+}
+
+func (man *IdlManager) AddIDL(name string, version string, idl interface{}) error {
+	targetFile := name + version
+	if _, exist := man.m[targetFile]; exist {
+		return errors.New("IDL already exists")
+	}
+	filename := name + "/" + version + idlFileSuffix
+	newFile, err := os.Create(idlRootDirectory + filename)
+	if err != nil {
+		return err
+	}
+
+	defer newFile.Close()
+	if _, err = newFile.WriteString(idl.(string)); err != nil {
+		return err
+	}
+
+	man.m[targetFile] = IdlInfo{filename, idl.(string)}
+	return nil
+}
+
+func (man *IdlManager) DelIDL(name string, version string) error {
+	targetFile := name + version
+	if _, exist := man.m[targetFile]; !exist {
+		return errors.New("no such IDL")
+	}
+	if err := os.Remove(idlRootDirectory + man.m[targetFile].name); err != nil {
+		return err
+	}
+
+	delete(man.m, targetFile)
+	return nil
+}
+
+func (man *IdlManager) GetIDL(name string, version string) (string, error) {
+	targetFile := name + version
+	if _, exist := man.m[targetFile]; !exist {
+		return "", errors.New("no such IDL")
+	} else {
+		return man.m[targetFile].content, nil
+	}
+}
+```
+
 ### API网关学生信息管理
 
 #### 较高压力连续查询
@@ -342,6 +652,12 @@ func (s *StudentServiceImpl) Register(ctx context.Context, student *demo.Student
 ## 优化后性能数据
 
 ### IDL多版本管理与控制
+
+#### 高压力连续查询
+![](img/optimization/idl-opt.png)
+![](img/optimization/top-opt.png)
+
+从pprof监测的结果来看，IDLManage模块原本在读取文件上就要花费的0.04s，在缓存的帮助下，整个模块耗时降低到了0.02s，性能得到了提升
 
 ### API网关学生信息管理
 
