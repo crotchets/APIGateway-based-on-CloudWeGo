@@ -1,4 +1,4 @@
-# APIGateway-based-on-CloudWeGo用户说明文档
+# APIGateway-based-on-CloudWeGo用户使用说明文档
 ## 小组成员
 - [x] 陈皓鑫🌶️ [@crotchets](https://github.com/211250236)
 - [x] 张哲恺🌴 [@Corax](https://github.com/KYCoraxxx)
