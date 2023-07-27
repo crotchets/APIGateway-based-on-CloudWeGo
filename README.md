@@ -15,9 +15,9 @@
 ## User Documentation
 🎉 用户使用说明文档[用户使用说明文档](./docs/user-specification.md)
 
-📣 性能测试和优化报告[性能测试和优化报告](./docs/performance-test-and-optimization-report.md)
+📣 性能测试和优化报告[性能测试和优化报告](./docs/test-optimization.md)
 ## Developer Documentation
-⚠️⚠️⚠️ 该部分文档仅供开发者记录和使用，用户请勿参考➡️[开发者记录文档](./docs/developer-documentation.md)
+⚠️⚠️⚠️ 该部分文档仅供开发者记录和使用，用户请勿参考➡️[开发者记录文档](./docs/developer-doc.md)
 
 
 
