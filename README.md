@@ -17,8 +17,7 @@
 
 📣 性能测试和优化报告[性能测试和优化报告](./docs/performance-test-and-optimization-report.md)
 ## Developer Documentation
-⚠️⚠️⚠️ 该部分文档仅供开发者记录和使用，用户请勿参考
-开发者记录文档[开发者记录文档](./docs/developer-documentation.md)
+⚠️⚠️⚠️ 该部分文档仅供开发者记录和使用，用户请勿参考➡️[开发者记录文档](./docs/developer-documentation.md)
 
 
 
