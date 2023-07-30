@@ -11,13 +11,8 @@
 
 📍 项目还另外包括一个rpc服务端➡️[rpc服务端](https://github.com/KYCoraxxx/rpc-server-for-cloudwego-project)
 
-💡 查看项目完整结构请切换项目分支至`dev`分支
+💡 查看项目优化部分代码请切换项目分支至`opt`分支
 ## User Documentation
 🎉 用户使用说明文档➡️[用户使用说明文档](./docs/user-specification.md)
 
 📣 性能测试和优化报告➡️[性能测试和优化报告](./docs/test-optimization.md)
-## Developer Documentation
-⚠️⚠️⚠️ 该部分文档仅供开发者记录和使用，用户请勿参考➡️[开发者记录文档](./docs/developer-doc.md)
-
-
-

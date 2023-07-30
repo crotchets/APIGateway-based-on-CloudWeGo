@@ -273,5 +273,3 @@ go run .
       - `sex`：学生性别，`string`类型
     - `IDLVersion`：IDL版本号，`string`类型，必填
     - `IDL`：IDL内容，`string`类型，必填
-
-
