@@ -129,7 +129,7 @@ git clone https://github.com/crotchets/APIGateway-based-on-CloudWeGo.git  #HTTPS
 ```bash
 cd APIGateway-based-on-CloudWeGo
 ```
-`main`分支是没有代码的，需要切换分支：
+`main`分支也有可构建代码，如果愿意你也可以切换分支：
 ```bash
 git checkout -b dev
 ```
